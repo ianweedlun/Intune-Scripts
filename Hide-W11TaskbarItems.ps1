@@ -45,7 +45,7 @@ if(Test-RegistryValue -Path "$regPath\Search" -Value $showSearch){
     }
 }
 else {    
-    New-ItemProperty -Path "$regPath\Explorer\Advanced" -name $showSearch -value 0 -PropertyType Dword
+    New-ItemProperty -Path "$regPath\Search" -name $showSearch -value 0 -PropertyType Dword
 }
 
 if(Test-RegistryValue -Path "$regPath\Explorer\Advanced" -Value $showChat){
