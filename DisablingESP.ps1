@@ -27,19 +27,19 @@ foreach($subkey in $keys) {
 }
 
 if(Test-RegistryValue -Path "$location\FirstSync" -value SkipUserStatusPage) {
-    if((Get-ItemProperty -Path "$location\FirstSync" | Select-Object -ExpandProperty SkipUserStatusPage) -ne 1){
-        Set-ItemProperty -path "$location\FirstSync" -name SkipUserStatusPage -value 1
+    if((Get-ItemProperty -Path "$location\FirstSync" | Select-Object -ExpandProperty SkipUserStatusPage) -ne 0xffffffff){
+        Set-ItemProperty -path "$location\FirstSync" -name SkipUserStatusPage -value 0xffffffff
     }
 }
 else {    
-    New-ItemProperty -Path "$location\FirstSync" -name SkipUserStatusPage -value 1 -PropertyType Dword
+    New-ItemProperty -Path "$location\FirstSync" -name SkipUserStatusPage -value 0xffffffff -PropertyType Dword
 }
 
 if(Test-RegistryValue -Path "$location\FirstSync" -value SkipDeviceStatusPage) {
-    if((Get-ItemProperty -Path "$location\FirstSync" | Select-Object -ExpandProperty SkipDeviceStatusPage) -ne 1){
-        Set-ItemProperty -path "$location\FirstSync" -name SkipDeviceStatusPage -value 1
+    if((Get-ItemProperty -Path "$location\FirstSync" | Select-Object -ExpandProperty SkipDeviceStatusPage) -ne 0xffffffff){
+        Set-ItemProperty -path "$location\FirstSync" -name SkipDeviceStatusPage -value 0xffffffff
     }
 }
 else {    
-    New-ItemProperty -Path "$location\FirstSync" -name SkipDeviceStatusPage -value 1 -PropertyType Dword
+    New-ItemProperty -Path "$location\FirstSync" -name SkipDeviceStatusPage -value 0xffffffff -PropertyType Dword
 }
