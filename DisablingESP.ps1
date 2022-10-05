@@ -10,7 +10,8 @@ function Test-RegistryValue {
     try {
         Get-ItemProperty -Path $Path | Select-Object -ExpandProperty $Value -ErrorAction Stop | Out-Null
         return $true
-    }catch {
+    }
+    catch {
         return $false
     }
 }
@@ -27,7 +28,7 @@ foreach($subkey in $keys) {
 }
 
 if(Test-RegistryValue -Path "$location\FirstSync" -value SkipUserStatusPage) {
-    if((Get-ItemProperty -Path "$location\FirstSync" | Select-Object -ExpandProperty SkipUserStatusPage) -ne 0xffffffff){
+    if((Get-ItemProperty -Path "$location\FirstSync" | Select-Object -ExpandProperty SkipUserStatusPage) -ne 0xffffffff) {
         Set-ItemProperty -path "$location\FirstSync" -name SkipUserStatusPage -value 0xffffffff
     }
 }
@@ -36,7 +37,7 @@ else {
 }
 
 if(Test-RegistryValue -Path "$location\FirstSync" -value SkipDeviceStatusPage) {
-    if((Get-ItemProperty -Path "$location\FirstSync" | Select-Object -ExpandProperty SkipDeviceStatusPage) -ne 0xffffffff){
+    if((Get-ItemProperty -Path "$location\FirstSync" | Select-Object -ExpandProperty SkipDeviceStatusPage) -ne 0xffffffff) {
         Set-ItemProperty -path "$location\FirstSync" -name SkipDeviceStatusPage -value 0xffffffff
     }
 }
