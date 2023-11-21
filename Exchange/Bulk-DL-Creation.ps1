@@ -1,5 +1,5 @@
 #Parameters
-$CSVFilePath = "C:\Temp\Bulk-DL.csv"
+$CSVFilePath = "C:\Temp\NewDistributionLists.csv"
  
 Try {
     #Connect to Exchange Online

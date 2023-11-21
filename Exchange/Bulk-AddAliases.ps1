@@ -1,8 +1,5 @@
-$users = import-csv 'C:\temp\BFUsersAliases.csv'
-foreach ($user in $users)
+$users = Import-csv 'C:\temp\BFUsersAliases.csv'
+foreach($user in $users)
 {
-    Set-Mailbox $user.upn -EmailAddresses @{add=$user.alias}
- 
-    Write-Host "$($user.UPN) now has the alias of ($user.alias)"
+Set-Mailbox "$($user.Mailbox)" -EmailAddresses @{add="$($user.NewEmailAddress)"}
 }
-$users = $null
