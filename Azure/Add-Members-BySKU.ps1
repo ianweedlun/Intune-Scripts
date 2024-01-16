@@ -1,8 +1,22 @@
+#Requires -Module MSOnline
+[CmdletBinding(SupportsShouldProcess)]
+param (
+    # Saves the report to the script location
+    [Parameter()]
+    [switch]
+    $SaveReport
+)
+
+# Connect-MsolService
+<# Get-MsolAccountSku - Lists all of the SKUs in use by tenant. Be sure to match usage counts to determine accurate name mapping.
+Some licenses have SKU names that don't match their product name (e.g. M365 Business Standard is "O365_BUSINESS_PREMIUM")
+#>
+
 # Get all users with SKU
-$msolUsers = Get-MsolUser -EnabledFilter EnabledOnly -All | Where-Object {($_.licenses).AccountSkuId -eq 'americanastronomicalsociety:ENTERPRISEPREMIUM'} | Select DisplayName,UserPrincipalName,ObjectId
+$msolUsers = Get-MsolUser -All | Where-Object {($_.licenses).AccountSkuId -like '*O365_BUSINESS_ESSENTIALS'} | Select DisplayName,UserPrincipalName,ObjectId
 
 # Get the Group Id of your new Group. Change searchString to your new group name
-$groupId = Get-MsolGroup -SearchString "M365 License - O365 E5" | select ObjectId
+$groupId = Get-MsolGroup -SearchString "M365 License - Business Basic" | select ObjectId
 
 ForEach ($user in $msolUsers) {
   try {
