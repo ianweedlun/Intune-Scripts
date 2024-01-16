@@ -90,3 +90,5 @@ foreach ($product in $products.keys) {
     RemoveDirectLicenseAssignments -skuId $SKU
 
 }
+
+Disconnect-MgGraph
