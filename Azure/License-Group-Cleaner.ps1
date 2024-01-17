@@ -22,8 +22,6 @@ function GroupAddBySKU {
             New-MgGroupMember -Group $groupId -DirectoryObjectId $user.Id
             Write-Host $user.UserPrincipalName "has been added to" $groupName
         }
-        else {
-        }
     }
 }
 
@@ -53,16 +51,16 @@ Connect-MgGraph -Scopes User.ReadWrite.All, Organization.Read.All, Group.ReadWri
 # Get-MgSubscribedSku | Select -Property Sku*, ConsumedUnits -ExpandProperty PrepaidUnits | Format-List
 
 $products = @{
-    VISIOCLIENT               = "M365 License - Visio Plan 2"
-    EXCHANGEENTERPRISE        = "M365 License - Exchange P2"
-    SPB                       = "M365 License - Business Premium"
-    O365_BUSINESS_PREMIUM     = "M365 License - Business Standard"
-    O365_BUSINESS_ESSENTIALS  = "M365 License - Business Basic"
-    EXCHANGESTANDARD          = "M365 License - Exchange P1"
-    SPE_F1                    = "M365 License - F3"
-    PROJECTPROFESSIONAL       = "M365 License - Project Plan 3"
-    MCOTEAMS_ESSENTIALS       = "M365 License - Business Premium + Teams Phone with Calling Plan (country zone 1 - US)"
-    MCOPSTN9                  = "M365 License - Business Premium + Microsoft Teams International Calling Plan (for SMB)"
+    VISIOCLIENT              = "M365 License - Visio Plan 2"
+    EXCHANGEENTERPRISE       = "M365 License - Exchange P2"
+    SPB                      = "M365 License - Business Premium"
+    O365_BUSINESS_PREMIUM    = "M365 License - Business Standard"
+    O365_BUSINESS_ESSENTIALS = "M365 License - Business Basic"
+    EXCHANGESTANDARD         = "M365 License - Exchange P1"
+    SPE_F1                   = "M365 License - F3"
+    PROJECTPROFESSIONAL      = "M365 License - Project Plan 3"
+    MCOTEAMS_ESSENTIALS      = "M365 License - Business Premium + Teams Phone with Calling Plan (country zone 1 - US)"
+    MCOPSTN9                 = "M365 License - Business Premium + Microsoft Teams International Calling Plan (for SMB)"
 }
 
 Write-Host "Launching M365 license group organizer`n" -ForegroundColor Green
@@ -94,4 +92,4 @@ foreach ($product in $products.keys) {
     }
 }
 
-# Disconnect-MgGraph
+Disconnect-MgGraph
