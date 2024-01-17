@@ -4,21 +4,16 @@ function GroupAddBySKU {
         [Parameter (Mandatory = $true)] [String]$groupName
     )
 
-    # Get all users with SKU
+    $allUsers = Get-MgUser -Filter "assignedLicenses/any(x:x/skuId eq $($skuId) )" # Get all users with SKU
 
-    $allUsers = Get-MgUser -Filter "assignedLicenses/any(x:x/skuId eq $($skuId) )"
+    $groupId = (Get-MgGroup | Where-Object { $_.DisplayName -eq $groupName }).Id # Find group ID
 
-    # Find group ID
-
-    $groupId = (Get-MgGroup | Where-Object { $_.DisplayName -eq $groupName }).Id
-
-    Write-Host "Checking that all users assigned" $skuId "are members of" $groupName"."
+    Write-Host "Checking that all users assigned" $skuId "`nare members of" $groupName"."
 
     ForEach ($user in $allUsers) {
         $groups = Get-MgUserMemberOf -UserId $user.Id
         if ($groups.Id -notcontains $groupId) {
-            # Try to add the user to the new group
-            New-MgGroupMember -Group $groupId -DirectoryObjectId $user.Id
+            New-MgGroupMember -Group $groupId -DirectoryObjectId $user.Id # Try to add the user to the group
             Write-Host $user.UserPrincipalName "has been added to" $groupName
         }
     }
@@ -30,7 +25,6 @@ function RemoveDirectLicenseAssignments {
     )
 
     # Get all users with SKU
-
     $users = Get-MgUser -All -Property AssignedLicenses, LicenseAssignmentStates, DisplayName, Id | Select-Object DisplayName, AssignedLicenses, Id -ExpandProperty LicenseAssignmentStates | Select-Object DisplayName, AssignedByGroup, Id, SkuId | Where-Object { $_.SkuId -eq $skuId } | Where-Object { $_.AssignedByGroup -eq $null }
 
     Write-Host "Checking for SKU" $skuId "directly assigned to users."
@@ -41,13 +35,10 @@ function RemoveDirectLicenseAssignments {
     }
 }
 
-# Connect to MS Graph with required permissions
+Connect-MgGraph -Scopes User.ReadWrite.All, Organization.Read.All, Group.ReadWrite.All -NoWelcome # Connect to MS Graph with required permissions
 
-Connect-MgGraph -Scopes User.ReadWrite.All, Organization.Read.All, Group.ReadWrite.All -NoWelcome
-
-# Define table of products and their corresponding group name.
-
-# Get-MgSubscribedSku | Select -Property Sku*, ConsumedUnits -ExpandProperty PrepaidUnits | Format-List
+<# Define table of products and their corresponding group name.
+Get-MgSubscribedSku | Select -Property Sku*, ConsumedUnits -ExpandProperty PrepaidUnits | Format-List #>
 
 $products = @{
     VISIOCLIENT              = "M365 License - Visio Plan 2"
