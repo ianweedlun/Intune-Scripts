@@ -1,11 +1,4 @@
-#Requires -Module MSOnline
-[CmdletBinding(SupportsShouldProcess)]
-param (
-    # Saves the report to the script location
-    [Parameter()]
-    [switch]
-    $SaveReport
-)
+#Requires -Module AzureAD
 
 # Connect-MsolService
 <# Get-MsolAccountSku - Lists all of the SKUs in use by tenant. Be sure to match usage counts to determine accurate name mapping.
@@ -13,10 +6,11 @@ Some licenses have SKU names that don't match their product name (e.g. M365 Busi
 #>
 
 # Get all users with SKU
-$msolUsers = Get-MsolUser -All | Where-Object {($_.licenses).AccountSkuId -like '*O365_BUSINESS_ESSENTIALS'} | Select DisplayName,UserPrincipalName,ObjectId
+# $msolUsers = Get-MsolUser -All | Where-Object {($_.licenses).AccountSkuId -like '*O365_BUSINESS_ESSENTIALS'} | Select DisplayName,UserPrincipalName,ObjectId
+$allusers = Get-AzureADUser -All $true | Where-Object {$_.AssignedLicenses.SkuId -eq '3b555118-da6a-4418-894f-7df1e2096870'}
 
 # Get the Group Id of your new Group. Change searchString to your new group name
-$groupId = Get-MsolGroup -SearchString "M365 License - Business Basic" | select ObjectId
+$groupId = Get-AzureADGroup -SearchString "M365 License - Business Basic" | select ObjectId
 
 ForEach ($user in $msolUsers) {
   try {

@@ -15,19 +15,21 @@ function GroupAddBySKU {
     Write-Host "Checking that all users assigned" $skuId "are members of" $groupName"."
 
     ForEach ($user in $allUsers) {
-        try {
-            # Try to add the user to the new group      
-            New-MgGroupMember -Group $groupId.Id -DirectoryObjectId $user.Id -ErrorAction stop  
-            Write-Host $user.UserPrincipalName "has been added to " $groupName                
+        # need an if users group list is missing group name to replace the try/catch
+        $groups = Get-MgUserMemberOf -UserId $user.Id
+        if ($groups.Id -notcontains $groupId.Id) {
+            # Try to add the user to the new group
+            New-MgGroupMember -Group $groupId.Id -DirectoryObjectId $user.Id -WhatIf
+            Write-Host $user.UserPrincipalName "has been added to " $groupName
         }
-        catch {            
+        else {
         }
     }
 }
 
 function RemoveDirectLicenseAssignments {
     param(
-        [Parameter (Mandatory = $true)] [String]$skuId        
+        [Parameter (Mandatory = $true)] [String]$skuId
     )
 
     # Get all users with SKU
@@ -37,18 +39,18 @@ function RemoveDirectLicenseAssignments {
     Write-Host "Checking for SKU" $skuId "directly assigned to users."
 
     foreach ($user in $allUsers) {
-    
+
         $assignedLicenses = Get-MgUserLicenseDetail -UserId $user.Id
 
-        foreach ($license in $assignedLicenses.skuId) {              
-        
-            if ($license -eq $skuId) {           
+        foreach ($license in $assignedLicenses.skuId) {
 
-                try {                    
+            if ($license -eq $skuId) {
+                # need if license assignment is direct added here so we can remove the try
+                try {
                     Set-MgUserLicense -UserId $user.Id -RemoveLicenses @($license) -AddLicenses @{} -ErrorAction stop
                     Write-Host $user.UserPrincipalName "has had" $skuId "removed."
                 }
-                catch {                    
+                catch {
                 }
             }
         }
@@ -79,22 +81,22 @@ foreach ($product in $products.keys) {
     # Find license SKU
 
     Write-Host "Searching for" $product"."
-    
+
     $SKU = Get-MgSubscribedSku -All | Where SkuPartNumber -eq $product
 
-    if ($SKU) {    
-        $SKU = $SKU.skuId    
+    if ($SKU) {
+        $SKU = $SKU.skuId
         $group = $products[$product]
-        # Add all licensees to the proper corresponding group        
-        GroupAddBySKU -skuId $SKU -groupName $group    
+        # Add all licensees to the proper corresponding group
+        GroupAddBySKU -skuId $SKU -groupName $group
         Write-Host "Group memberships corrected, moving onto removing direct assignments."
         Sleep 3
         # Remove same license if directly assigned to users
-        RemoveDirectLicenseAssignments -skuId $SKU  
+        #RemoveDirectLicenseAssignments -skuId $SKU
     }
     else {
         Write-Host $product "not found."
-    }    
+    }
 }
 
 Disconnect-MgGraph
