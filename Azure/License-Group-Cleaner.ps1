@@ -15,7 +15,6 @@ function GroupAddBySKU {
     Write-Host "Checking that all users assigned" $skuId "are members of" $groupName"."
 
     ForEach ($user in $allUsers) {
-        # need an if users group list is missing group name to replace the try/catch
         $groups = Get-MgUserMemberOf -UserId $user.Id
         if ($groups.Id -notcontains $groupId) {
             # Try to add the user to the new group
