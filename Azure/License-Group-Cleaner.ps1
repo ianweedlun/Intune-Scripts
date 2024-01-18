@@ -8,12 +8,18 @@ function GroupAddBySKU {
 
     $groupId = (Get-MgGroup | Where-Object { $_.DisplayName -eq $groupName }).Id # Find group ID
 
-    Write-Host "Checking that all users assigned" $skuId "`nare members of" $groupName"."
+    if (!$groupId) {
+        $groupId = (Get-MgGroup -Filter "DisplayName eq '$groupName'").Id # Fallback method if first lookup fails to find group
+    }
+
+    Write-Host "Checking that all users assigned" $skuId "are `nmembers of" $groupName"."
 
     ForEach ($user in $allUsers) {
         $groups = Get-MgUserMemberOf -UserId $user.Id
         if ($groups.Id -notcontains $groupId) {
-            New-MgGroupMember -Group $groupId -DirectoryObjectId $user.Id # Try to add the user to the group
+            Write-Host "Adding" $user.UserPrincipalName "to" $groupName
+            New-MgGroupMember -Group $groupId -DirectoryObjectId $user.Id -ErrorAction Stop | Out-Null # Try to add the user to the group
+            Invoke-MgLicenseUser -UserId $user.Id -ErrorAction Stop | Out-Null # Process licensing assignment by group
             Write-Host $user.UserPrincipalName "has been added to" $groupName
         }
     }
@@ -30,8 +36,9 @@ function RemoveDirectLicenseAssignments {
     Write-Host "Checking for SKU" $skuId "directly assigned to users."
 
     foreach ($user in $users) {
-        Set-MgUserLicense -UserId $user.Id -RemoveLicenses @($skuId) -AddLicenses @{} | Out-Null
         Write-Host "Removing" $skuId "from" $user.DisplayName
+        Set-MgUserLicense -UserId $user.Id -RemoveLicenses @($skuId) -AddLicenses @{} -ErrorAction Stop | Out-Null # Try to remove the directly assigned license
+        Write-Host $skuId "removed from" $user.DisplayName
     }
 }
 
@@ -41,16 +48,17 @@ Connect-MgGraph -Scopes User.ReadWrite.All, Organization.Read.All, Group.ReadWri
 Get-MgSubscribedSku | Select -Property Sku*, ConsumedUnits -ExpandProperty PrepaidUnits | Format-List #>
 
 $products = @{
-    VISIOCLIENT              = "M365 License - Visio Plan 2"
-    EXCHANGEENTERPRISE       = "M365 License - Exchange P2"
-    SPB                      = "M365 License - Business Premium"
-    O365_BUSINESS_PREMIUM    = "M365 License - Business Standard"
     O365_BUSINESS_ESSENTIALS = "M365 License - Business Basic"
+    O365_BUSINESS_PREMIUM = "M365 License - Business Standard"
+    SPB                      = "M365 License - Business Premium"
     EXCHANGESTANDARD         = "M365 License - Exchange P1"
+    EXCHANGEENTERPRISE       = "M365 License - Exchange P2"
     SPE_F1                   = "M365 License - F3"
+    ATP_ENTERPRISE           = "M365 License - Defender for O365 P1"
     PROJECTPROFESSIONAL      = "M365 License - Project Plan 3"
-    MCOTEAMS_ESSENTIALS      = "M365 License - Business Premium + Teams Phone with Calling Plan (country zone 1 - US)"
-    MCOPSTN9                 = "M365 License - Business Premium + Microsoft Teams International Calling Plan (for SMB)"
+    VISIOCLIENT              = "M365 License - Visio Plan 2"
+    #MCOTEAMS_ESSENTIALS      = "M365 License - Business Premium + Teams Phone with Calling Plan (country zone 1 - US)"
+    #MCOPSTN9                 = "M365 License - Business Premium + Microsoft Teams International Calling Plan (for SMB)"
 }
 
 Write-Host "Launching M365 license group organizer`n" -ForegroundColor Green
