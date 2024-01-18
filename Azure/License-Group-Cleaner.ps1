@@ -38,7 +38,7 @@ function RemoveDirectLicenseAssignments {
         [Parameter (Mandatory = $true)] [String]$skuId
     )
 
-    # Get all users with SKU
+    # Get all users with SKU directly assigned
     $users = Get-MgUser -All -Property AssignedLicenses, LicenseAssignmentStates, UserPrincipalName, Id | Select-Object UserPrincipalName, AssignedLicenses, Id -ExpandProperty LicenseAssignmentStates | Select-Object UserPrincipalName, AssignedByGroup, Id, SkuId | Where-Object { $_.SkuId -eq $skuId } | Where-Object { $_.AssignedByGroup -eq $null }
 
     Write-Host "Checking for SKU" $skuId "directly assigned to users."
@@ -46,6 +46,8 @@ function RemoveDirectLicenseAssignments {
     foreach ($user in $users) {
         Write-Host "Removing" $skuId "from" $user.UserPrincipalName
         Set-MgUserLicense -UserId $user.Id -RemoveLicenses @($skuId) -AddLicenses @{} -ErrorAction Stop | Out-Null # Try to remove the directly assigned license
+        # if Get-MgUser -All -Property AssignedLicenses, LicenseAssignmentStates, UserPrincipalName, Id | Select-Object UserPrincipalName, AssignedLicenses, Id -ExpandProperty LicenseAssignmentStates | Select-Object UserPrincipalName, AssignedByGroup, Id, SkuId | Where-Object { $_.SkuId -eq $skuId } | Where-Object { $_.AssignedByGroup -eq $null }
+        # no longer contains $user, successful
         Write-Host $skuId "removed from" $user.UserPrincipalName
     }
 }
