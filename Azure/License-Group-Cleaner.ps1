@@ -86,7 +86,7 @@ foreach ($product in $products.keys) {
         $SKU = $SKU.skuId
         $group = $products[$product]
         GroupAddBySKU -skuId $SKU -groupName $group # Add all licensees to the proper license group
-        Write-Host "Group memberships corrected, moving onto removing direct assignments."
+        Write-Host "`nGroup memberships corrected, moving onto removing direct assignments."
         RemoveDirectLicenseAssignments -skuId $SKU # Remove same license if directly assigned to users
         "-" * 80 | Write-Host -ForegroundColor Green
         Write-Host "`n"
