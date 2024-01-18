@@ -19,8 +19,16 @@ function GroupAddBySKU {
         if ($groups.Id -notcontains $groupId) {
             Write-Host "Adding" $user.UserPrincipalName "to" $groupName
             New-MgGroupMember -Group $groupId -DirectoryObjectId $user.Id -ErrorAction Stop | Out-Null # Try to add the user to the group
-            Invoke-MgLicenseUser -UserId $user.Id -ErrorAction Stop | Out-Null # Process licensing assignment by group
-            Write-Host $user.UserPrincipalName "has been added to" $groupName # Change to check for group membership and if found write successful, if not, fail out and stop script
+            $groups = Get-MgUserMemberOf -UserId $user.Id
+            if ($groups.Id -contains $groupId) { # Check if adding to group was successful
+                Write-Host "Successful!"
+                Invoke-MgLicenseUser -UserId $user.Id -ErrorAction Stop | Out-Null # Process licensing assignment by group
+            }
+            else {
+                Write-Host "Failed to add" $user.UserPrincipalName "to" $groupName
+                Disconnect-MgGraph
+                Exit
+            }
         }
     }
 }
@@ -31,14 +39,14 @@ function RemoveDirectLicenseAssignments {
     )
 
     # Get all users with SKU
-    $users = Get-MgUser -All -Property AssignedLicenses, LicenseAssignmentStates, DisplayName, Id | Select-Object DisplayName, AssignedLicenses, Id -ExpandProperty LicenseAssignmentStates | Select-Object DisplayName, AssignedByGroup, Id, SkuId | Where-Object { $_.SkuId -eq $skuId } | Where-Object { $_.AssignedByGroup -eq $null }
+    $users = Get-MgUser -All -Property AssignedLicenses, LicenseAssignmentStates, UserPrincipalName, Id | Select-Object UserPrincipalName, AssignedLicenses, Id -ExpandProperty LicenseAssignmentStates | Select-Object UserPrincipalName, AssignedByGroup, Id, SkuId | Where-Object { $_.SkuId -eq $skuId } | Where-Object { $_.AssignedByGroup -eq $null }
 
     Write-Host "Checking for SKU" $skuId "directly assigned to users."
 
     foreach ($user in $users) {
-        Write-Host "Removing" $skuId "from" $user.DisplayName
+        Write-Host "Removing" $skuId "from" $user.UserPrincipalName
         Set-MgUserLicense -UserId $user.Id -RemoveLicenses @($skuId) -AddLicenses @{} -ErrorAction Stop | Out-Null # Try to remove the directly assigned license
-        Write-Host $skuId "removed from" $user.DisplayName
+        Write-Host $skuId "removed from" $user.UserPrincipalName
     }
 }
 
@@ -49,7 +57,7 @@ Get-MgSubscribedSku | Select -Property Sku*, ConsumedUnits -ExpandProperty Prepa
 
 $products = @{
     O365_BUSINESS_ESSENTIALS = "M365 License - Business Basic"
-    O365_BUSINESS_PREMIUM = "M365 License - Business Standard"
+    O365_BUSINESS_PREMIUM    = "M365 License - Business Standard"
     SPB                      = "M365 License - Business Premium"
     EXCHANGESTANDARD         = "M365 License - Exchange P1"
     EXCHANGEENTERPRISE       = "M365 License - Exchange P2"
