@@ -20,7 +20,7 @@ function GroupAddBySKU {
             Write-Host "Adding" $user.UserPrincipalName "to" $groupName
             New-MgGroupMember -Group $groupId -DirectoryObjectId $user.Id -ErrorAction Stop | Out-Null # Try to add the user to the group
             Invoke-MgLicenseUser -UserId $user.Id -ErrorAction Stop | Out-Null # Process licensing assignment by group
-            Write-Host $user.UserPrincipalName "has been added to" $groupName
+            Write-Host $user.UserPrincipalName "has been added to" $groupName # Change to check for group membership and if found write successful, if not, fail out and stop script
         }
     }
 }
@@ -75,11 +75,9 @@ foreach ($product in $products.keys) {
     if ($SKU) {
         $SKU = $SKU.skuId
         $group = $products[$product]
-        # Add all licensees to the proper corresponding group
-        GroupAddBySKU -skuId $SKU -groupName $group
+        GroupAddBySKU -skuId $SKU -groupName $group # Add all licensees to the proper license group
         Write-Host "Group memberships corrected, moving onto removing direct assignments."
-        # Remove same license if directly assigned to users
-        RemoveDirectLicenseAssignments -skuId $SKU
+        RemoveDirectLicenseAssignments -skuId $SKU # Remove same license if directly assigned to users
         "-" * 80 | Write-Host -ForegroundColor Green
         Write-Host "`n"
     }
