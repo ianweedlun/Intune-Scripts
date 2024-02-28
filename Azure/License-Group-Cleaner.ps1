@@ -99,3 +99,4 @@ foreach ($product in $products.keys) {
 }
 
 Disconnect-MgGraph
+
